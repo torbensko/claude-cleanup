@@ -1,16 +1,19 @@
 # Claude Conversations
 
-An Electron app to review and manage your Claude Code conversation history. Conversations are stored at `~/.claude/projects/` as JSONL files — this app gives you a visual interface to browse them and surgically rewind when Claude gets stuck.
+Sometimes Claude gets so stuck that even a rewind can't recover the conversation. Rather than lose all that context, Claude Conversations lets you recover these sessions by browsing the raw conversation history and remove the messages that derailed things.
+
+It reads the JSONL files stored at `~/.claude/projects/` and gives you a visual interface to explore, copy, and forcefully rewind your Claude Code conversations.
 
 ![Screenshot](docs/screenshot.jpg)
 
 ## Features
 
-- View all conversations in chronological order (most recent first)
-- Filter by project (persisted between sessions)
-- Search conversations by prompt or summary
-- View all messages with collapsible thinking blocks and tool use/result details
-- Delete individual messages to rewind a conversation (with automatic backups)
+- **Browse & search** — filter by project, search by prompt or summary
+- **Markdown rendering** — code blocks, tables, images, with collapsible thinking blocks and tool use details
+- **Copy messages** — copies raw markdown to clipboard
+- **Conversation rewind** — delete a message and everything after it to unstick Claude (with automatic backups)
+- **AI summaries** — generate conversation titles with the Anthropic API
+- **Index repair** — detect and fix stale or missing entries in VS Code's `sessions-index.json`
 
 ## Getting Started
 
@@ -28,9 +31,20 @@ npm run dev
 # Package the app
 npm run build
 
-# Create distributable installer
+# Create distributable (.zip with .app inside)
 npm run make
 ```
+
+## Releasing
+
+Push a version tag to trigger a GitHub Actions build and release:
+
+```bash
+git tag v0.1.0
+git push origin v0.1.0
+```
+
+The workflow builds on `macos-latest` and attaches the `.zip` to a GitHub Release.
 
 ## Stack
 
