@@ -6,7 +6,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 export function ConversationList() {
   const { selectedProject, searchQuery, selectedConversation, setSelectedConversation } =
     useAppState();
-  const { conversations, loading } = useConversations(selectedProject);
+  const { conversations, loading, updateSummary } = useConversations(selectedProject);
 
   const filtered = searchQuery
     ? conversations.filter((c) => {
@@ -45,6 +45,7 @@ export function ConversationList() {
             conversation={convo}
             isSelected={selectedConversation?.sessionId === convo.sessionId}
             onClick={() => setSelectedConversation(convo)}
+            onSummaryGenerated={updateSummary}
           />
         ))}
       </div>

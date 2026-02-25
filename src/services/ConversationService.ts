@@ -88,7 +88,7 @@ function readSessionsIndex(projectDir: string): ConversationEntry[] {
         sessionId: entry.sessionId as string,
         fullPath: entry.fullPath as string,
         firstPrompt: cleanPrompt((entry.firstPrompt as string) || "No prompt"),
-        summary: entry.summary ? cleanPrompt(entry.summary as string) : undefined,
+        summary: entry.customTitle ? cleanPrompt(entry.customTitle as string) : entry.summary ? cleanPrompt(entry.summary as string) : undefined,
         messageCount: (entry.messageCount as number) || 0,
         created: entry.created as string,
         modified: entry.modified as string,

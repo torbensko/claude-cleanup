@@ -20,7 +20,7 @@ export interface ConversationEntry {
 }
 
 export interface ContentBlock {
-  type: "text" | "thinking" | "tool_use" | "tool_result";
+  type: "text" | "thinking" | "tool_use" | "tool_result" | "image";
   text?: string;
   thinking?: string;
   name?: string;
@@ -29,6 +29,12 @@ export interface ContentBlock {
   content?: unknown;
   tool_use_id?: string;
   is_error?: boolean;
+  source?: {
+    type: "base64" | "url";
+    media_type?: string;
+    data?: string;
+    url?: string;
+  };
 }
 
 export interface Message {

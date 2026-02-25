@@ -76,6 +76,19 @@ export function MessageContent({ content, isUser }: MessageContentProps) {
         if (block.type === "text") {
           return <MarkdownText key={i} text={block.text || ""} isUser={isUser} />;
         }
+        if (block.type === "image" && block.source) {
+          const src = block.source.type === "base64"
+            ? `data:${block.source.media_type || "image/jpeg"};base64,${block.source.data}`
+            : block.source.url || "";
+          return (
+            <img
+              key={i}
+              src={src}
+              alt="Attached image"
+              className="max-w-full rounded max-h-[400px] object-contain"
+            />
+          );
+        }
         return null;
       })}
     </div>

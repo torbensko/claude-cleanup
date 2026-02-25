@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import type { ConversationEntry } from "@/types/conversations";
 
 export function useConversations(projectDirName: string | null) {
@@ -15,5 +15,11 @@ export function useConversations(projectDirName: string | null) {
       });
   }, [projectDirName]);
 
-  return { conversations, loading };
+  const updateSummary = useCallback((sessionId: string, summary: string) => {
+    setConversations((prev) =>
+      prev.map((c) => (c.sessionId === sessionId ? { ...c, summary } : c))
+    );
+  }, []);
+
+  return { conversations, loading, updateSummary };
 }

@@ -5,6 +5,9 @@ export interface ElectronAPI {
   listConversations: (projectDir?: string) => Promise<ConversationEntry[]>;
   listMessages: (filePath: string) => Promise<Message[]>;
   deleteMessagesFrom: (filePath: string, uuid: string) => Promise<DeleteResult>;
+  generateSummary: (filePath: string, sessionId: string, projectDir: string) => Promise<{ success: boolean; summary?: string; error?: string }>;
+  getApiKey: () => Promise<string | null>;
+  setApiKey: (key: string) => Promise<void>;
 }
 
 declare global {

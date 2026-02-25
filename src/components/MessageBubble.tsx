@@ -29,7 +29,7 @@ function formatTime(timestamp: string): string {
 
 function getTextBlocks(content: string | ContentBlock[]): ContentBlock[] {
   if (typeof content === "string") return [{ type: "text", text: content }];
-  return content.filter((b) => b.type === "text");
+  return content.filter((b) => b.type === "text" || b.type === "image");
 }
 
 function getActionBlocks(content: string | ContentBlock[]): ContentBlock[] {
@@ -65,7 +65,7 @@ export function MessageBubble({ message, onDelete }: MessageBubbleProps) {
   const isUser = message.type === "user";
   const textBlocks = getTextBlocks(message.message.content);
   const actionBlocks = getActionBlocks(message.message.content);
-  const hasText = textBlocks.some((b) => b.type === "text" && b.text?.trim());
+  const hasText = textBlocks.some((b) => (b.type === "text" && b.text?.trim()) || b.type === "image");
 
   return (
     <div className="group relative">
