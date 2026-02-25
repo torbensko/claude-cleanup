@@ -1,6 +1,6 @@
-# Claude Conversations
+# Claude Cleanup
 
-Sometimes Claude gets so stuck that even a rewind can't recover the conversation. Rather than lose all that context, Claude Conversations lets you recover these sessions by browsing the raw conversation history and remove the messages that derailed things.
+Sometimes Claude gets so stuck that even a rewind can't recover the conversation. Rather than lose all that context, Claude Cleanup lets you recover these sessions by browsing the raw conversation history and remove the messages that derailed things.
 
 It reads the JSONL files stored at `~/.claude/projects/` and gives you a visual interface to explore, copy, and forcefully rewind your Claude Code conversations.
 

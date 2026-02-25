@@ -5,8 +5,8 @@ import path from 'path';
 
 const config: ForgeConfig = {
   packagerConfig: {
-    name: 'Claude Conversations',
-    executableName: 'claude-conversations',
+    name: 'Claude Cleanup',
+    executableName: 'claude-cleanup',
     asar: false,
     icon: path.resolve(__dirname, 'build', 'icon'),
   },

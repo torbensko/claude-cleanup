@@ -77,7 +77,7 @@ function createWindow() {
     win.loadFile(indexPath);
   }
 
-  win.setTitle("Claude Conversations");
+  win.setTitle("Claude Cleanup");
   return win;
 }
 

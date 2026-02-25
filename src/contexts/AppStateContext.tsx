@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from "react";
 import type { ConversationEntry } from "@/types/conversations";
 
-const STORAGE_KEY = "claude-conversations-selected-project";
+const STORAGE_KEY = "claude-cleanup-selected-project";
 
 interface AppState {
   selectedProject: string | null; // null = "All Projects"

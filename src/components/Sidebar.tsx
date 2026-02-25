@@ -42,7 +42,7 @@ export function Sidebar() {
       <div className="px-3 pt-3 pb-1 shrink-0 space-y-1">
         <div className="flex items-center justify-between px-1">
           <h1 className="text-sm font-semibold text-foreground">
-            Claude Conversations
+            Claude Cleanup
           </h1>
           <Dialog>
             <DialogTrigger asChild>
