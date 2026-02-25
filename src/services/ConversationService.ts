@@ -190,6 +190,152 @@ function scanJsonlFilesWithNames(projectDir: string, jsonlFiles: string[], proje
   }
 }
 
+function hasUserMessages(filePath: string): boolean {
+  try {
+    const content = fs.readFileSync(filePath, "utf-8");
+    for (const line of content.split("\n")) {
+      if (!line.trim()) continue;
+      try {
+        const parsed = JSON.parse(line);
+        if (parsed.type === "user" && !parsed.isMeta && !parsed.isSidechain) {
+          return true;
+        }
+      } catch {
+        // skip
+      }
+    }
+  } catch {
+    // ignore
+  }
+  return false;
+}
+
+function getMissingJsonlFiles(projectDir: string): string[] {
+  const indexPath = path.join(projectDir, "sessions-index.json");
+  let indexedIds = new Set<string>();
+  if (fs.existsSync(indexPath)) {
+    try {
+      const indexData = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+      const entries = (indexData.entries || []) as Array<Record<string, unknown>>;
+      indexedIds = new Set(entries.map((e) => e.sessionId as string));
+    } catch {
+      // treat as empty
+    }
+  }
+
+  return fs
+    .readdirSync(projectDir)
+    .filter((f) => f.endsWith(".jsonl") && !f.includes(path.sep))
+    .filter((f) => !indexedIds.has(f.replace(".jsonl", "")))
+    .filter((f) => hasUserMessages(path.join(projectDir, f)));
+}
+
+export function checkIndexHealth(): { missingCount: number } {
+  if (!fs.existsSync(CLAUDE_PROJECTS_DIR)) {
+    return { missingCount: 0 };
+  }
+
+  let missingCount = 0;
+  const projectDirs = fs.readdirSync(CLAUDE_PROJECTS_DIR, { withFileTypes: true });
+  for (const entry of projectDirs) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    const projectDir = path.join(CLAUDE_PROJECTS_DIR, entry.name);
+    missingCount += getMissingJsonlFiles(projectDir).length;
+  }
+
+  return { missingCount };
+}
+
+export function repairAllIndexes(): { repairedProjects: number; addedEntries: number } {
+  if (!fs.existsSync(CLAUDE_PROJECTS_DIR)) {
+    return { repairedProjects: 0, addedEntries: 0 };
+  }
+
+  let repairedProjects = 0;
+  let addedEntries = 0;
+
+  const projectDirs = fs.readdirSync(CLAUDE_PROJECTS_DIR, { withFileTypes: true });
+  for (const entry of projectDirs) {
+    if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
+    const projectDir = path.join(CLAUDE_PROJECTS_DIR, entry.name);
+    const indexPath = path.join(projectDir, "sessions-index.json");
+
+    let indexData: Record<string, unknown> = { version: 1, entries: [] };
+    if (fs.existsSync(indexPath)) {
+      try {
+        indexData = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
+      } catch {
+        // start fresh
+      }
+    }
+
+    const entries = (indexData.entries || []) as Array<Record<string, unknown>>;
+
+    const missingFiles = getMissingJsonlFiles(projectDir);
+
+    if (missingFiles.length === 0) continue;
+
+    for (const file of missingFiles) {
+      const fullPath = path.join(projectDir, file);
+      const sessionId = file.replace(".jsonl", "");
+      const stat = fs.statSync(fullPath);
+
+      let firstPrompt = "No prompt";
+      let messageCount = 0;
+      try {
+        const content = fs.readFileSync(fullPath, "utf-8");
+        const lines = content.split("\n");
+        for (const line of lines) {
+          if (!line.trim()) continue;
+          try {
+            const parsed = JSON.parse(line);
+            if ((parsed.type === "user" || parsed.type === "assistant") && !parsed.isMeta && !parsed.isSidechain) {
+              messageCount++;
+            }
+            if (firstPrompt === "No prompt" && parsed.type === "user" && !parsed.isMeta && parsed.message?.content) {
+              const c = parsed.message.content;
+              if (typeof c === "string") {
+                const cleaned = cleanPrompt(c);
+                if (cleaned) firstPrompt = cleaned.slice(0, 200);
+              } else if (Array.isArray(c)) {
+                for (const b of c as Array<{ type: string; text?: string }>) {
+                  if (b.type !== "text" || !b.text) continue;
+                  const cleaned = cleanPrompt(b.text);
+                  if (cleaned && !isIdeNoise(cleaned)) {
+                    firstPrompt = cleaned.slice(0, 200);
+                    break;
+                  }
+                }
+              }
+            }
+          } catch {
+            // skip
+          }
+        }
+      } catch {
+        // ignore
+      }
+
+      entries.push({
+        sessionId,
+        fullPath,
+        firstPrompt,
+        messageCount,
+        created: stat.birthtime.toISOString(),
+        modified: stat.mtime.toISOString(),
+        isSidechain: false,
+      });
+      addedEntries++;
+    }
+
+    indexData.entries = entries;
+    fs.writeFileSync(indexPath, JSON.stringify(indexData, null, 2), "utf-8");
+    repairedProjects++;
+  }
+
+  return { repairedProjects, addedEntries };
+}
+
 export function listConversations(projectDirName?: string): ConversationEntry[] {
   if (!fs.existsSync(CLAUDE_PROJECTS_DIR)) {
     return [];

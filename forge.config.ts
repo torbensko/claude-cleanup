@@ -1,12 +1,14 @@
 import type { ForgeConfig } from '@electron-forge/shared-types';
 import { MakerZIP } from '@electron-forge/maker-zip';
 import { VitePlugin } from '@electron-forge/plugin-vite';
+import path from 'path';
 
 const config: ForgeConfig = {
   packagerConfig: {
     name: 'Claude Conversations',
     executableName: 'claude-conversations',
     asar: false,
+    icon: path.resolve(__dirname, 'build', 'icon'),
   },
   rebuildConfig: {},
   makers: [

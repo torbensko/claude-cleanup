@@ -4,7 +4,7 @@ import * as path from "path";
 import { app } from "electron";
 import { IPC_CHANNELS } from "../types/ipc-channels";
 import { listProjects } from "../services/ProjectService";
-import { listConversations } from "../services/ConversationService";
+import { listConversations, repairAllIndexes, checkIndexHealth } from "../services/ConversationService";
 import { listMessages, deleteMessagesFrom } from "../services/MessageService";
 import { generateSummary } from "../services/SummaryService";
 
@@ -88,4 +88,12 @@ export function registerIpc() {
       writeStoredApiKey(key);
     }
   );
+
+  ipcMain.handle(IPC_CHANNELS.INDEX_REPAIR, () => {
+    return repairAllIndexes();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.INDEX_CHECK, () => {
+    return checkIndexHealth();
+  });
 }

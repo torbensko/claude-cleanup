@@ -8,6 +8,8 @@ export interface ElectronAPI {
   generateSummary: (filePath: string, sessionId: string, projectDir: string) => Promise<{ success: boolean; summary?: string; error?: string }>;
   getApiKey: () => Promise<string | null>;
   setApiKey: (key: string) => Promise<void>;
+  repairIndexes: () => Promise<{ repairedProjects: number; addedEntries: number }>;
+  checkIndexHealth: () => Promise<{ missingCount: number }>;
 }
 
 declare global {
