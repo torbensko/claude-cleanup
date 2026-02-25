@@ -213,6 +213,11 @@ export function listConversations(projectDirName?: string): ConversationEntry[] 
     }
   }
 
+  // Filter out empty conversations (no messages and no useful prompt)
+  conversations = conversations.filter(
+    (c) => c.messageCount > 0 || c.summary || (c.firstPrompt !== "No prompt" && c.firstPrompt.trim() !== "")
+  );
+
   // Sort by modified date, most recent first
   conversations.sort(
     (a, b) => new Date(b.modified).getTime() - new Date(a.modified).getTime()
