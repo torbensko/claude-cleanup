@@ -14,25 +14,28 @@ It reads the JSONL files stored at `~/.claude/projects/` and gives you a visual 
 - **Conversation rewind** — delete a message and everything after it to unstick Claude (with automatic backups)
 - **AI summaries** — generate conversation titles with the Anthropic API
 - **Index repair** — detect and fix stale or missing entries in VS Code's `sessions-index.json`
+- **Plans viewer** — browse Claude's implementation plans from `~/.claude/plans/` with full markdown rendering
+
+![Plans viewer](docs/screenshot-plans.jpg)
 
 ## Getting Started
 
 ```bash
 # Install dependencies
-npm install
+yarn install
 
 # Run in development mode
-npm run dev
+yarn dev
 ```
 
 ## Build
 
 ```bash
 # Package the app
-npm run build
+yarn build
 
 # Create distributable (.zip with .app inside)
-npm run make
+yarn make
 ```
 
 ## Releasing
@@ -40,8 +43,8 @@ npm run make
 Push a version tag to trigger a GitHub Actions build and release:
 
 ```bash
-git tag v0.1.0
-git push origin v0.1.0
+git tag v0.3.0
+git push origin v0.3.0
 ```
 
 The workflow builds on `macos-latest` and attaches the `.zip` to a GitHub Release.

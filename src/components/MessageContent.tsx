@@ -1,6 +1,7 @@
 import type { ContentBlock } from "@/types/conversations";
 import { cn } from "@/lib/utils";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface MessageContentProps {
   content: string | ContentBlock[];
@@ -11,24 +12,19 @@ function MarkdownText({ text, isUser }: { text: string; isUser: boolean }) {
   return (
     <div className={cn("text-sm prose-sm break-words", isUser ? "prose-invert" : "prose-neutral dark:prose-invert")}>
       <Markdown
+        remarkPlugins={[remarkGfm]}
         components={{
           p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-          code: ({ children, className }) => {
-            const isBlock = className?.includes("language-");
-            if (isBlock) {
-              return (
-                <pre className="bg-muted/50 rounded p-2 overflow-x-auto my-2">
-                  <code className="text-[12px]">{children}</code>
-                </pre>
-              );
-            }
-            return (
-              <code className="bg-muted/50 rounded px-1 py-0.5 text-[12px]">
-                {children}
-              </code>
-            );
-          },
-          pre: ({ children }) => <>{children}</>,
+          code: ({ children }) => (
+            <code className="bg-muted/50 rounded px-1 py-0.5 text-[12px]">
+              {children}
+            </code>
+          ),
+          pre: ({ children }) => (
+            <pre className="bg-muted/50 rounded p-2 overflow-x-auto my-2 text-[12px]">
+              {children}
+            </pre>
+          ),
           ul: ({ children }) => <ul className="list-disc pl-4 mb-2 space-y-0.5">{children}</ul>,
           ol: ({ children }) => <ol className="list-decimal pl-4 mb-2 space-y-0.5">{children}</ol>,
           li: ({ children }) => <li className="text-sm">{children}</li>,

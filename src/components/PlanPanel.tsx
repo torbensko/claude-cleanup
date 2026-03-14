@@ -3,6 +3,7 @@ import { usePlanDetail } from "@/hooks/usePlans";
 import { Skeleton } from "@/components/ui/skeleton";
 import { FileText } from "lucide-react";
 import Markdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export function PlanPanel() {
   const { selectedPlan } = useAppState();
@@ -36,24 +37,19 @@ export function PlanPanel() {
         <div className="p-6 pb-12 max-w-4xl">
           <div className="text-sm prose-sm prose-neutral dark:prose-invert break-words">
             <Markdown
+              remarkPlugins={[remarkGfm]}
               components={{
                 p: ({ children }) => <p className="mb-3 last:mb-0">{children}</p>,
-                code: ({ children, className }) => {
-                  const isBlock = className?.includes("language-");
-                  if (isBlock) {
-                    return (
-                      <pre className="bg-muted/50 rounded p-3 overflow-x-auto my-3">
-                        <code className="text-[12px]">{children}</code>
-                      </pre>
-                    );
-                  }
-                  return (
-                    <code className="bg-muted/50 rounded px-1 py-0.5 text-[12px]">
-                      {children}
-                    </code>
-                  );
-                },
-                pre: ({ children }) => <>{children}</>,
+                code: ({ children }) => (
+                  <code className="bg-muted/50 rounded px-1 py-0.5 text-[12px]">
+                    {children}
+                  </code>
+                ),
+                pre: ({ children }) => (
+                  <pre className="bg-muted/50 rounded p-3 overflow-x-auto my-3 text-[12px]">
+                    {children}
+                  </pre>
+                ),
                 ul: ({ children }) => <ul className="list-disc pl-4 mb-3 space-y-1">{children}</ul>,
                 ol: ({ children }) => <ol className="list-decimal pl-4 mb-3 space-y-1">{children}</ol>,
                 li: ({ children }) => <li className="text-sm">{children}</li>,
