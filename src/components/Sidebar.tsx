@@ -1,5 +1,6 @@
 import { ProjectSelector } from "./ProjectSelector";
 import { ConversationList } from "./ConversationList";
+import { PlanList } from "./PlanList";
 import { Separator } from "@/components/ui/separator";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -11,12 +12,13 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Settings, Eye, EyeOff } from "lucide-react";
+import { Search, Settings, Eye, EyeOff, MessageSquare, ClipboardList } from "lucide-react";
 import { useAppState } from "@/contexts/AppStateContext";
 import { useState, useEffect } from "react";
+import { cn } from "@/lib/utils";
 
 export function Sidebar() {
-  const { searchQuery, setSearchQuery } = useAppState();
+  const { viewMode, setViewMode, searchQuery, setSearchQuery } = useAppState();
   const [apiKeyDisplay, setApiKeyDisplay] = useState<string | null>(null);
   const [apiKeyInput, setApiKeyInput] = useState("");
   const [showKey, setShowKey] = useState(false);
@@ -36,9 +38,11 @@ export function Sidebar() {
     setSaving(false);
   };
 
+  const isPlans = viewMode === "plans";
+
   return (
     <div className="flex flex-col h-full overflow-hidden">
-      {/* App title + project selector */}
+      {/* App title + mode toggle + settings */}
       <div className="px-3 pt-3 pb-1 shrink-0 space-y-1">
         <div className="flex items-center justify-between px-1">
           <h1 className="text-sm font-semibold text-foreground">
@@ -96,7 +100,36 @@ export function Sidebar() {
             </DialogContent>
           </Dialog>
         </div>
-        <ProjectSelector />
+
+        {/* Mode toggle */}
+        <div className="flex rounded-lg bg-muted/50 p-0.5">
+          <button
+            onClick={() => setViewMode("conversations")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
+              !isPlans
+                ? "bg-background text-foreground shadow-sm font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <MessageSquare className="h-3 w-3" />
+            Conversations
+          </button>
+          <button
+            onClick={() => setViewMode("plans")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
+              isPlans
+                ? "bg-background text-foreground shadow-sm font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <ClipboardList className="h-3 w-3" />
+            Plans
+          </button>
+        </div>
+
+        {!isPlans && <ProjectSelector />}
       </div>
 
       <Separator className="my-1" />
@@ -106,7 +139,7 @@ export function Sidebar() {
         <div className="relative">
           <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search conversations..."
+            placeholder={isPlans ? "Search plans..." : "Search conversations..."}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9 h-9 text-sm"
@@ -114,9 +147,9 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Conversation list */}
+      {/* List */}
       <div className="flex-1 min-h-0 overflow-hidden">
-        <ConversationList />
+        {isPlans ? <PlanList /> : <ConversationList />}
       </div>
     </div>
   );

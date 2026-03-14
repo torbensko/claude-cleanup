@@ -1,7 +1,11 @@
 import { Sidebar } from "./Sidebar";
 import { MessagePanel } from "./MessagePanel";
+import { PlanPanel } from "./PlanPanel";
+import { useAppState } from "@/contexts/AppStateContext";
 
 export function AppLayout() {
+  const { viewMode } = useAppState();
+
   return (
     <div className="flex h-screen w-screen overflow-hidden">
       {/* Title bar drag region */}
@@ -14,7 +18,7 @@ export function AppLayout() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col pt-8 min-w-0 overflow-hidden">
-        <MessagePanel />
+        {viewMode === "plans" ? <PlanPanel /> : <MessagePanel />}
       </div>
     </div>
   );

@@ -7,6 +7,7 @@ import { listProjects } from "../services/ProjectService";
 import { listConversations, repairAllIndexes, checkIndexHealth } from "../services/ConversationService";
 import { listMessages, deleteMessagesFrom } from "../services/MessageService";
 import { generateSummary } from "../services/SummaryService";
+import { listPlans, readPlan } from "../services/PlanService";
 
 function getApiKeyPath(): string {
   return path.join(app.getPath("userData"), "api-key");
@@ -95,5 +96,13 @@ export function registerIpc() {
 
   ipcMain.handle(IPC_CHANNELS.INDEX_CHECK, () => {
     return checkIndexHealth();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.PLANS_LIST, () => {
+    return listPlans();
+  });
+
+  ipcMain.handle(IPC_CHANNELS.PLANS_READ, (_event, fullPath: string) => {
+    return readPlan(fullPath);
   });
 }

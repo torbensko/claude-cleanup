@@ -57,3 +57,18 @@ export interface DeleteResult {
   backupPath: string;
   deletedCount: number;
 }
+
+export interface PlanEntry {
+  fileName: string;
+  fullPath: string;
+  title: string;
+  modified: string;
+  sizeBytes: number;
+}
+
+export interface PlanDetail {
+  fileName: string;
+  title: string;
+  content: string;
+  modified: string;
+}

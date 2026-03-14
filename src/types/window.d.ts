@@ -1,4 +1,4 @@
-import type { ProjectInfo, ConversationEntry, Message, DeleteResult } from "./conversations";
+import type { ProjectInfo, ConversationEntry, Message, DeleteResult, PlanEntry, PlanDetail } from "./conversations";
 
 export interface ElectronAPI {
   listProjects: () => Promise<ProjectInfo[]>;
@@ -10,6 +10,8 @@ export interface ElectronAPI {
   setApiKey: (key: string) => Promise<void>;
   repairIndexes: () => Promise<{ repairedProjects: number; addedEntries: number }>;
   checkIndexHealth: () => Promise<{ missingCount: number }>;
+  listPlans: () => Promise<PlanEntry[]>;
+  readPlan: (fullPath: string) => Promise<PlanDetail | null>;
 }
 
 declare global {

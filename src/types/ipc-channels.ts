@@ -8,4 +8,6 @@ export const IPC_CHANNELS = {
   SETTINGS_SET_API_KEY: "settings:setApiKey",
   INDEX_REPAIR: "index:repair",
   INDEX_CHECK: "index:check",
+  PLANS_LIST: "plans:list",
+  PLANS_READ: "plans:read",
 } as const;
