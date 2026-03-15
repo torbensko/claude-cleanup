@@ -279,21 +279,101 @@ function getStaleCountEntries(projectDir: string): Array<Record<string, unknown>
   }
 }
 
-export function checkIndexHealth(): { missingCount: number } {
+export interface IndexIssue {
+  type: "missing" | "stale_count";
+  sessionId: string;
+  firstPrompt: string;
+  detail: string;
+}
+
+export interface ProjectHealth {
+  projectName: string;
+  dirName: string;
+  issues: IndexIssue[];
+}
+
+export interface IndexHealthResult {
+  missingCount: number;
+  projects: ProjectHealth[];
+}
+
+export function checkIndexHealth(): IndexHealthResult {
   if (!fs.existsSync(CLAUDE_PROJECTS_DIR)) {
-    return { missingCount: 0 };
+    return { missingCount: 0, projects: [] };
   }
 
   let missingCount = 0;
+  const projects: ProjectHealth[] = [];
   const projectDirs = fs.readdirSync(CLAUDE_PROJECTS_DIR, { withFileTypes: true });
+
   for (const entry of projectDirs) {
     if (!entry.isDirectory() || entry.name.startsWith(".")) continue;
     const projectDir = path.join(CLAUDE_PROJECTS_DIR, entry.name);
-    missingCount += getMissingJsonlFiles(projectDir).length;
-    missingCount += getStaleCountEntries(projectDir).length;
+    const projectName = decodeProjectName(entry.name);
+    const issues: IndexIssue[] = [];
+
+    // Missing files
+    const missingFiles = getMissingJsonlFiles(projectDir);
+    for (const file of missingFiles) {
+      const fullPath = path.join(projectDir, file);
+      const sessionId = file.replace(".jsonl", "");
+      let firstPrompt = "No prompt";
+      try {
+        const content = fs.readFileSync(fullPath, "utf-8");
+        for (const line of content.split("\n")) {
+          if (!line.trim()) continue;
+          try {
+            const parsed = JSON.parse(line);
+            if (parsed.type === "user" && !parsed.isMeta && parsed.message?.content) {
+              const c = parsed.message.content;
+              if (typeof c === "string") {
+                const cleaned = cleanPrompt(c);
+                if (cleaned) { firstPrompt = cleaned.slice(0, 120); break; }
+              } else if (Array.isArray(c)) {
+                for (const b of c as Array<{ type: string; text?: string }>) {
+                  if (b.type !== "text" || !b.text) continue;
+                  const cleaned = cleanPrompt(b.text);
+                  if (cleaned && !isIdeNoise(cleaned)) {
+                    firstPrompt = cleaned.slice(0, 120);
+                    break;
+                  }
+                }
+                if (firstPrompt !== "No prompt") break;
+              }
+            }
+          } catch { /* skip */ }
+        }
+      } catch { /* ignore */ }
+
+      issues.push({
+        type: "missing",
+        sessionId,
+        firstPrompt,
+        detail: "Conversation file exists but is not in the index",
+      });
+    }
+
+    // Stale counts
+    const staleEntries = getStaleCountEntries(projectDir);
+    for (const stale of staleEntries) {
+      const fp = stale.fullPath as string;
+      const indexedCount = (stale.messageCount as number) || 0;
+      const realCount = countMessagesInFile(fp);
+      issues.push({
+        type: "stale_count",
+        sessionId: stale.sessionId as string,
+        firstPrompt: (stale.firstPrompt as string) || "No prompt",
+        detail: `Message count: ${indexedCount} in index, ${realCount} on disk`,
+      });
+    }
+
+    if (issues.length > 0) {
+      missingCount += issues.length;
+      projects.push({ projectName, dirName: entry.name, issues });
+    }
   }
 
-  return { missingCount };
+  return { missingCount, projects };
 }
 
 export function repairAllIndexes(): { repairedProjects: number; addedEntries: number } {

@@ -1,4 +1,4 @@
-import type { ProjectInfo, ConversationEntry, Message, DeleteResult, PlanEntry, PlanDetail } from "./conversations";
+import type { ProjectInfo, ConversationEntry, Message, DeleteResult, PlanEntry, PlanDetail, IndexHealthResult } from "./conversations";
 
 export interface ElectronAPI {
   listProjects: () => Promise<ProjectInfo[]>;
@@ -9,7 +9,7 @@ export interface ElectronAPI {
   getApiKey: () => Promise<string | null>;
   setApiKey: (key: string) => Promise<void>;
   repairIndexes: () => Promise<{ repairedProjects: number; addedEntries: number }>;
-  checkIndexHealth: () => Promise<{ missingCount: number }>;
+  checkIndexHealth: () => Promise<IndexHealthResult>;
   listPlans: () => Promise<PlanEntry[]>;
   readPlan: (fullPath: string) => Promise<PlanDetail | null>;
 }

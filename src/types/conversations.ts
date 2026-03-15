@@ -72,3 +72,21 @@ export interface PlanDetail {
   content: string;
   modified: string;
 }
+
+export interface IndexIssue {
+  type: "missing" | "stale_count";
+  sessionId: string;
+  firstPrompt: string;
+  detail: string;
+}
+
+export interface ProjectHealth {
+  projectName: string;
+  dirName: string;
+  issues: IndexIssue[];
+}
+
+export interface IndexHealthResult {
+  missingCount: number;
+  projects: ProjectHealth[];
+}

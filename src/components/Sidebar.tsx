@@ -24,8 +24,11 @@ export function Sidebar() {
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
+  const [issueCount, setIssueCount] = useState(0);
+
   useEffect(() => {
     window.api.getApiKey().then(setApiKeyDisplay);
+    window.api.checkIndexHealth().then((r) => setIssueCount(r.missingCount));
   }, []);
 
   const handleSaveKey = async () => {
@@ -113,7 +116,7 @@ export function Sidebar() {
             )}
           >
             <MessageSquare className="h-3 w-3" />
-            Conversations
+            Chat
           </button>
           <button
             onClick={() => setViewMode("plans")}
@@ -138,6 +141,11 @@ export function Sidebar() {
           >
             <Wrench className="h-3 w-3" />
             Repair
+            {issueCount > 0 && (
+              <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-medium rounded-full bg-yellow-500 text-yellow-950">
+                {issueCount}
+              </span>
+            )}
           </button>
         </div>
 
@@ -153,7 +161,7 @@ export function Sidebar() {
             <div className="relative">
               <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder={viewMode === "plans" ? "Search plans..." : "Search conversations..."}
+                placeholder={viewMode === "plans" ? "Search plans..." : "Search chats..."}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9 h-9 text-sm"

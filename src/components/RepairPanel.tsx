@@ -6,22 +6,21 @@ import {
   CheckCircle2,
   FileSearch,
   Hash,
+  FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
+import type { IndexHealthResult, ProjectHealth } from "@/types/conversations";
 
 export function RepairPanel() {
-  const [missingCount, setMissingCount] = useState(0);
+  const [health, setHealth] = useState<IndexHealthResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [repairing, setRepairing] = useState(false);
-  const [lastResult, setLastResult] = useState<{
-    repairedProjects: number;
-    addedEntries: number;
-  } | null>(null);
+  const [repaired, setRepaired] = useState(false);
 
   useEffect(() => {
     window.api
       .checkIndexHealth()
-      .then((r) => setMissingCount(r.missingCount))
+      .then(setHealth)
       .finally(() => setLoading(false));
   }, []);
 
@@ -29,8 +28,8 @@ export function RepairPanel() {
     setRepairing(true);
     try {
       const result = await window.api.repairIndexes();
-      setLastResult(result);
-      setMissingCount(0);
+      setRepaired(true);
+      setHealth({ missingCount: 0, projects: [] });
       toast.success(`Repaired ${result.repairedProjects} project(s)`, {
         description: `Fixed ${result.addedEntries} conversation(s)`,
       });
@@ -40,6 +39,8 @@ export function RepairPanel() {
       setRepairing(false);
     }
   };
+
+  const totalIssues = health?.missingCount ?? 0;
 
   return (
     <div className="h-full overflow-y-auto">
@@ -54,36 +55,40 @@ export function RepairPanel() {
           </p>
         </div>
 
-        {/* Status */}
+        {/* Status + action */}
         <div className="rounded-lg border border-border p-4">
           {loading ? (
-            <p className="text-sm text-muted-foreground">
-              Checking index health...
-            </p>
-          ) : lastResult ? (
+            <div className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4 animate-spin text-muted-foreground" />
+              <p className="text-sm text-muted-foreground">
+                Checking index health...
+              </p>
+            </div>
+          ) : repaired || totalIssues === 0 ? (
             <div className="flex items-start gap-3">
               <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
               <div>
                 <p className="text-sm font-medium text-foreground">
-                  Repair complete
+                  {repaired ? "Repair complete" : "All indexes are healthy"}
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  Fixed {lastResult.addedEntries} conversation(s) across{" "}
-                  {lastResult.repairedProjects} project(s).
+                  {repaired
+                    ? "All issues have been fixed."
+                    : "No issues detected."}
                 </p>
               </div>
             </div>
-          ) : missingCount > 0 ? (
+          ) : (
             <div className="flex items-start gap-3">
               <AlertTriangle className="h-5 w-5 text-yellow-500 mt-0.5 shrink-0" />
               <div className="flex-1">
                 <p className="text-sm font-medium text-foreground">
-                  {missingCount} conversation{missingCount !== 1 ? "s" : ""}{" "}
-                  need repair
+                  {totalIssues} issue{totalIssues !== 1 ? "s" : ""} found across{" "}
+                  {health!.projects.length} project
+                  {health!.projects.length !== 1 ? "s" : ""}
                 </p>
                 <p className="text-sm text-muted-foreground mt-0.5">
-                  These conversations exist on disk but are missing from or
-                  incorrect in the VS Code index.
+                  Review the breakdown below, then repair.
                 </p>
                 <Button
                   onClick={handleRepair}
@@ -97,28 +102,28 @@ export function RepairPanel() {
                       Repairing...
                     </>
                   ) : (
-                    "Repair now"
+                    `Repair ${totalIssues} issue${totalIssues !== 1 ? "s" : ""}`
                   )}
                 </Button>
-              </div>
-            </div>
-          ) : (
-            <div className="flex items-start gap-3">
-              <CheckCircle2 className="h-5 w-5 text-green-500 mt-0.5 shrink-0" />
-              <div>
-                <p className="text-sm font-medium text-foreground">
-                  All indexes are healthy
-                </p>
-                <p className="text-sm text-muted-foreground mt-0.5">
-                  No issues detected.
-                </p>
               </div>
             </div>
           )}
         </div>
 
+        {/* Breakdown by project */}
+        {!loading && !repaired && health && health.projects.length > 0 && (
+          <div className="space-y-4">
+            <h2 className="text-sm font-semibold text-foreground">
+              Issues by project
+            </h2>
+            {health.projects.map((project) => (
+              <ProjectIssues key={project.dirName} project={project} />
+            ))}
+          </div>
+        )}
+
         {/* Explanation */}
-        <div className="space-y-6">
+        <div className="space-y-6 border-t border-border pt-8">
           <div>
             <h2 className="text-sm font-semibold text-foreground mb-2">
               What is the VS Code index?
@@ -188,6 +193,60 @@ export function RepairPanel() {
             </p>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+function ProjectIssues({ project }: { project: ProjectHealth }) {
+  const missingCount = project.issues.filter(
+    (i) => i.type === "missing"
+  ).length;
+  const staleCount = project.issues.filter(
+    (i) => i.type === "stale_count"
+  ).length;
+
+  return (
+    <div className="rounded-lg border border-border overflow-hidden">
+      <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 border-b border-border">
+        <FolderOpen className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
+        <span className="text-sm font-medium text-foreground truncate">
+          {project.projectName}
+        </span>
+        <div className="ml-auto flex items-center gap-2 shrink-0">
+          {missingCount > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {missingCount} missing
+            </span>
+          )}
+          {staleCount > 0 && (
+            <span className="text-xs text-muted-foreground">
+              {staleCount} stale
+            </span>
+          )}
+        </div>
+      </div>
+      <div className="divide-y divide-border">
+        {project.issues.map((issue) => (
+          <div
+            key={issue.sessionId}
+            className="flex items-start gap-2.5 px-3 py-2"
+          >
+            {issue.type === "missing" ? (
+              <FileSearch className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
+            ) : (
+              <Hash className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
+            )}
+            <div className="min-w-0 flex-1">
+              <p className="text-xs text-foreground truncate">
+                {issue.firstPrompt}
+              </p>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                {issue.detail}
+              </p>
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );
