@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Settings, Eye, EyeOff, MessageSquare, ClipboardList } from "lucide-react";
+import { Search, Settings, Eye, EyeOff, MessageSquare, ClipboardList, Wrench } from "lucide-react";
 import { useAppState } from "@/contexts/AppStateContext";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -38,7 +38,7 @@ export function Sidebar() {
     setSaving(false);
   };
 
-  const isPlans = viewMode === "plans";
+  const showList = viewMode === "conversations" || viewMode === "plans";
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -107,7 +107,7 @@ export function Sidebar() {
             onClick={() => setViewMode("conversations")}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
-              !isPlans
+              viewMode === "conversations"
                 ? "bg-background text-foreground shadow-sm font-medium"
                 : "text-muted-foreground hover:text-foreground"
             )}
@@ -119,7 +119,7 @@ export function Sidebar() {
             onClick={() => setViewMode("plans")}
             className={cn(
               "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
-              isPlans
+              viewMode === "plans"
                 ? "bg-background text-foreground shadow-sm font-medium"
                 : "text-muted-foreground hover:text-foreground"
             )}
@@ -127,30 +127,46 @@ export function Sidebar() {
             <ClipboardList className="h-3 w-3" />
             Plans
           </button>
+          <button
+            onClick={() => setViewMode("repair")}
+            className={cn(
+              "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
+              viewMode === "repair"
+                ? "bg-background text-foreground shadow-sm font-medium"
+                : "text-muted-foreground hover:text-foreground"
+            )}
+          >
+            <Wrench className="h-3 w-3" />
+            Repair
+          </button>
         </div>
 
-        {!isPlans && <ProjectSelector />}
+        {viewMode === "conversations" && <ProjectSelector />}
       </div>
 
-      <Separator className="my-1" />
+      {showList && (
+        <>
+          <Separator className="my-1" />
 
-      {/* Search */}
-      <div className="px-3 py-2 shrink-0">
-        <div className="relative">
-          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-          <Input
-            placeholder={isPlans ? "Search plans..." : "Search conversations..."}
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9 h-9 text-sm"
-          />
-        </div>
-      </div>
+          {/* Search */}
+          <div className="px-3 py-2 shrink-0">
+            <div className="relative">
+              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder={viewMode === "plans" ? "Search plans..." : "Search conversations..."}
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-9 h-9 text-sm"
+              />
+            </div>
+          </div>
 
-      {/* List */}
-      <div className="flex-1 min-h-0 overflow-hidden">
-        {isPlans ? <PlanList /> : <ConversationList />}
-      </div>
+          {/* List */}
+          <div className="flex-1 min-h-0 overflow-hidden">
+            {viewMode === "plans" ? <PlanList /> : <ConversationList />}
+          </div>
+        </>
+      )}
     </div>
   );
 }
