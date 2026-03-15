@@ -1,22 +1,10 @@
 import { Sidebar } from "./Sidebar";
 import { MessagePanel } from "./MessagePanel";
 import { PlanPanel } from "./PlanPanel";
-import { RepairPanel } from "./RepairPanel";
 import { useAppState } from "@/contexts/AppStateContext";
 
 export function AppLayout() {
   const { viewMode } = useAppState();
-
-  const renderContent = () => {
-    switch (viewMode) {
-      case "plans":
-        return <PlanPanel />;
-      case "repair":
-        return <RepairPanel />;
-      default:
-        return <MessagePanel />;
-    }
-  };
 
   return (
     <div className="flex h-screen w-screen overflow-hidden">
@@ -30,7 +18,7 @@ export function AppLayout() {
 
       {/* Main content */}
       <div className="flex-1 flex flex-col pt-8 min-w-0 overflow-hidden">
-        {renderContent()}
+        {viewMode === "plans" ? <PlanPanel /> : <MessagePanel />}
       </div>
     </div>
   );

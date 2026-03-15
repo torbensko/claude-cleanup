@@ -12,7 +12,7 @@ import {
   DialogDescription,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Search, Settings, Eye, EyeOff, MessageSquare, ClipboardList, Wrench } from "lucide-react";
+import { Search, Settings, Eye, EyeOff, MessageSquare, ClipboardList } from "lucide-react";
 import { useAppState } from "@/contexts/AppStateContext";
 import { useState, useEffect } from "react";
 import { cn } from "@/lib/utils";
@@ -24,11 +24,8 @@ export function Sidebar() {
   const [showKey, setShowKey] = useState(false);
   const [saving, setSaving] = useState(false);
 
-  const [issueCount, setIssueCount] = useState(0);
-
   useEffect(() => {
     window.api.getApiKey().then(setApiKeyDisplay);
-    window.api.checkIndexHealth().then((r) => setIssueCount(r.missingCount));
   }, []);
 
   const handleSaveKey = async () => {
@@ -40,8 +37,6 @@ export function Sidebar() {
     setApiKeyInput("");
     setSaving(false);
   };
-
-  const showList = viewMode === "conversations" || viewMode === "plans";
 
   return (
     <div className="flex flex-col h-full overflow-hidden">
@@ -130,51 +125,30 @@ export function Sidebar() {
             <ClipboardList className="h-3 w-3" />
             Plans
           </button>
-          <button
-            onClick={() => setViewMode("repair")}
-            className={cn(
-              "flex-1 flex items-center justify-center gap-1.5 text-xs py-1.5 rounded-md transition-colors",
-              viewMode === "repair"
-                ? "bg-background text-foreground shadow-sm font-medium"
-                : "text-muted-foreground hover:text-foreground"
-            )}
-          >
-            <Wrench className="h-3 w-3" />
-            Repair
-            {issueCount > 0 && (
-              <span className="ml-0.5 inline-flex items-center justify-center min-w-[16px] h-4 px-1 text-[10px] font-medium rounded-full bg-yellow-500 text-yellow-950">
-                {issueCount}
-              </span>
-            )}
-          </button>
         </div>
 
         {viewMode === "conversations" && <ProjectSelector />}
       </div>
 
-      {showList && (
-        <>
-          <Separator className="my-1" />
+      <Separator className="my-1" />
 
-          {/* Search */}
-          <div className="px-3 py-2 shrink-0">
-            <div className="relative">
-              <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder={viewMode === "plans" ? "Search plans..." : "Search chats..."}
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-9 h-9 text-sm"
-              />
-            </div>
-          </div>
+      {/* Search */}
+      <div className="px-3 py-2 shrink-0">
+        <div className="relative">
+          <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder={viewMode === "plans" ? "Search plans..." : "Search chats..."}
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="pl-9 h-9 text-sm"
+          />
+        </div>
+      </div>
 
-          {/* List */}
-          <div className="flex-1 min-h-0 overflow-hidden">
-            {viewMode === "plans" ? <PlanList /> : <ConversationList />}
-          </div>
-        </>
-      )}
+      {/* List */}
+      <div className="flex-1 min-h-0 overflow-hidden">
+        {viewMode === "plans" ? <PlanList /> : <ConversationList />}
+      </div>
     </div>
   );
 }

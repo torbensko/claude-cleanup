@@ -8,8 +8,6 @@ const IPC_CHANNELS = {
   SUMMARY_GENERATE: "summary:generate",
   SETTINGS_GET_API_KEY: "settings:getApiKey",
   SETTINGS_SET_API_KEY: "settings:setApiKey",
-  INDEX_REPAIR: "index:repair",
-  INDEX_CHECK: "index:check",
   PLANS_LIST: "plans:list",
   PLANS_READ: "plans:read",
 } as const;
@@ -35,12 +33,6 @@ contextBridge.exposeInMainWorld("api", {
 
   setApiKey: (key: string) =>
     ipcRenderer.invoke(IPC_CHANNELS.SETTINGS_SET_API_KEY, key),
-
-  repairIndexes: () =>
-    ipcRenderer.invoke(IPC_CHANNELS.INDEX_REPAIR),
-
-  checkIndexHealth: () =>
-    ipcRenderer.invoke(IPC_CHANNELS.INDEX_CHECK),
 
   listPlans: () =>
     ipcRenderer.invoke(IPC_CHANNELS.PLANS_LIST),

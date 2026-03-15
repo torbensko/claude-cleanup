@@ -3,7 +3,7 @@ import type { ConversationEntry, PlanEntry } from "@/types/conversations";
 
 const STORAGE_KEY = "claude-cleanup-selected-project";
 
-export type ViewMode = "conversations" | "plans" | "repair";
+export type ViewMode = "conversations" | "plans";
 
 interface AppState {
   viewMode: ViewMode;
