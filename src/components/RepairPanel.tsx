@@ -5,7 +5,6 @@ import {
   RefreshCw,
   CheckCircle2,
   FileSearch,
-  Hash,
   FolderOpen,
 } from "lucide-react";
 import { toast } from "sonner";
@@ -162,20 +161,6 @@ export function RepairPanel() {
                   </p>
                 </div>
               </div>
-              <div className="flex items-start gap-3 rounded-lg border border-border p-3">
-                <Hash className="h-4 w-4 text-muted-foreground mt-0.5 shrink-0" />
-                <div>
-                  <p className="text-sm font-medium text-foreground">
-                    Stale message counts
-                  </p>
-                  <p className="text-xs text-muted-foreground mt-0.5 leading-relaxed">
-                    The index records how many messages each conversation has,
-                    but this count can drift if messages are added or removed
-                    outside the extension. This causes the conversation list to
-                    show incorrect counts.
-                  </p>
-                </div>
-              </div>
             </div>
           </div>
 
@@ -186,10 +171,8 @@ export function RepairPanel() {
             <p className="text-sm text-muted-foreground leading-relaxed">
               Repair scans all project directories, finds conversation files
               missing from the index, and adds them with the correct metadata
-              (first prompt, message count, timestamps). It also recounts
-              messages in existing entries and corrects any stale counts. The
-              original conversation files are never modified — only the index is
-              updated.
+              (first prompt, message count, timestamps). The original
+              conversation files are never modified — only the index is updated.
             </p>
           </div>
         </div>
@@ -199,13 +182,6 @@ export function RepairPanel() {
 }
 
 function ProjectIssues({ project }: { project: ProjectHealth }) {
-  const missingCount = project.issues.filter(
-    (i) => i.type === "missing"
-  ).length;
-  const staleCount = project.issues.filter(
-    (i) => i.type === "stale_count"
-  ).length;
-
   return (
     <div className="rounded-lg border border-border overflow-hidden">
       <div className="flex items-center gap-2 px-3 py-2 bg-muted/30 border-b border-border">
@@ -213,18 +189,9 @@ function ProjectIssues({ project }: { project: ProjectHealth }) {
         <span className="text-sm font-medium text-foreground truncate">
           {project.projectName}
         </span>
-        <div className="ml-auto flex items-center gap-2 shrink-0">
-          {missingCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {missingCount} missing
-            </span>
-          )}
-          {staleCount > 0 && (
-            <span className="text-xs text-muted-foreground">
-              {staleCount} stale
-            </span>
-          )}
-        </div>
+        <span className="ml-auto text-xs text-muted-foreground shrink-0">
+          {project.issues.length} missing
+        </span>
       </div>
       <div className="divide-y divide-border">
         {project.issues.map((issue) => (
@@ -232,11 +199,7 @@ function ProjectIssues({ project }: { project: ProjectHealth }) {
             key={issue.sessionId}
             className="flex items-start gap-2.5 px-3 py-2"
           >
-            {issue.type === "missing" ? (
-              <FileSearch className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
-            ) : (
-              <Hash className="h-3.5 w-3.5 text-blue-500 mt-0.5 shrink-0" />
-            )}
+            <FileSearch className="h-3.5 w-3.5 text-yellow-500 mt-0.5 shrink-0" />
             <div className="min-w-0 flex-1">
               <p className="text-xs text-foreground truncate">
                 {issue.firstPrompt}

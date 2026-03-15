@@ -261,22 +261,10 @@ function getMissingJsonlFiles(projectDir: string): string[] {
     .filter((f) => hasUserMessages(path.join(projectDir, f)));
 }
 
-function getStaleCountEntries(projectDir: string): Array<Record<string, unknown>> {
-  const indexPath = path.join(projectDir, "sessions-index.json");
-  if (!fs.existsSync(indexPath)) return [];
-  try {
-    const indexData = JSON.parse(fs.readFileSync(indexPath, "utf-8"));
-    return ((indexData.entries || []) as Array<Record<string, unknown>>).filter((e) => {
-      if (e.isSidechain) return false;
-      const fp = e.fullPath as string;
-      if (!fp || !fs.existsSync(fp)) return false;
-      const indexedCount = (e.messageCount as number) || 0;
-      const realCount = countMessagesInFile(fp);
-      return indexedCount !== realCount;
-    });
-  } catch {
-    return [];
-  }
+function getStaleCountEntries(_projectDir: string): Array<Record<string, unknown>> {
+  // The VS Code extension updates messageCount at its own pace, so mismatches
+  // are expected and not a sign of corruption. Skip stale count detection.
+  return [];
 }
 
 export interface IndexIssue {
@@ -353,20 +341,6 @@ export function checkIndexHealth(): IndexHealthResult {
       });
     }
 
-    // Stale counts
-    const staleEntries = getStaleCountEntries(projectDir);
-    for (const stale of staleEntries) {
-      const fp = stale.fullPath as string;
-      const indexedCount = (stale.messageCount as number) || 0;
-      const realCount = countMessagesInFile(fp);
-      issues.push({
-        type: "stale_count",
-        sessionId: stale.sessionId as string,
-        firstPrompt: (stale.firstPrompt as string) || "No prompt",
-        detail: `Message count: ${indexedCount} in index, ${realCount} on disk`,
-      });
-    }
-
     if (issues.length > 0) {
       missingCount += issues.length;
       projects.push({ projectName, dirName: entry.name, issues });
@@ -400,24 +374,9 @@ export function repairAllIndexes(): { repairedProjects: number; addedEntries: nu
     }
 
     const entries = (indexData.entries || []) as Array<Record<string, unknown>>;
-
-    // Fix existing entries with stale messageCount
-    let fixedStale = false;
-    for (const entry of entries) {
-      if (entry.isSidechain) continue;
-      const fp = entry.fullPath as string;
-      if (!fp || !fs.existsSync(fp)) continue;
-      const realCount = countMessagesInFile(fp);
-      if ((entry.messageCount as number || 0) !== realCount) {
-        entry.messageCount = realCount;
-        fixedStale = true;
-        addedEntries++;
-      }
-    }
-
     const missingFiles = getMissingJsonlFiles(projectDir);
 
-    if (missingFiles.length === 0 && !fixedStale) continue;
+    if (missingFiles.length === 0) continue;
 
     for (const file of missingFiles) {
       const fullPath = path.join(projectDir, file);

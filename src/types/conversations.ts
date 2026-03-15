@@ -74,7 +74,7 @@ export interface PlanDetail {
 }
 
 export interface IndexIssue {
-  type: "missing" | "stale_count";
+  type: "missing";
   sessionId: string;
   firstPrompt: string;
   detail: string;
